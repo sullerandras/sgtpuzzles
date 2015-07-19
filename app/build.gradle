@@ -1,11 +1,8 @@
 import org.apache.tools.ant.taskdefs.condition.Os
-import com.google.common.base.Joiner
 
 import java.text.SimpleDateFormat
 
-apply plugin: 'com.android.application'
-
-def ndkDir = project.plugins.findPlugin('android').sdkHandler.ndkFolder
+apply plugin: 'com.android.model.application'
 
 def timestamp() {
     def dateFormat = new SimpleDateFormat("yyyy-MM-dd-HHmm")
@@ -32,119 +29,121 @@ def idForSimon() {
     }
 }
 
-android {
-    compileSdkVersion 22
-    buildToolsVersion "22.0.1"
+model {
+    android {
+        compileSdkVersion = 22
+        buildToolsVersion = "22.0.1"
 
-    defaultConfig {
-        applicationId "name.boyle.chris.sgtpuzzles"
-        versionCode 105
-        versionName "${timestamp()}-${idForSimon()}"
-
-        if (file(ndkDir.absolutePath + '/platforms/android-15').exists()) {  // the last without PIE
-            minSdkVersion 7
-        } else {
-            project.logger.log(LogLevel.WARN,
-                    "Your NDK can only support Android 4.1 and up because it forces PIE on. " +
-                    "Install one with platforms other than android-L for broader support.")
-            // Specifically, add-application.mk:149 ends up "Switching to android-L", so
-            // setup-abi.mk:55 ends up setting TARGET_PIE := true, so build-binary.mk:210
-            // will enable PIE regardless of APP_PIE.
-            minSdkVersion 16
-        }
-        targetSdkVersion 22
-
-        ndk {
-            moduleName "puzzles"
-            cFlags "-DANDROID -DSMALL_SCREEN -DSTYLUS_BASED -DNO_PRINTING -DCOMBINED"
-            // WARNING abiFilters "all" here can end up omitting lib dir; I don't know why
-        }
-        fileTree(dir: 'src/main/jni', include: '*.c').each {File f ->
-            def game = f.name.replace(".c", "")
-            def text = f.text
-            def match = text =~ /enum\s+\{\s*COL_[^,]+,\s*(COL_[^\}]+)\}/
-            if (match) {
-                def colours = match.group(1).replaceAll(/(?s)\/\*.*?\*\//, "").replaceAll(/#[^\n]*\n/, "")
-                        .trim().split(",")*.trim()*.replaceFirst(/^COL_/, "")*.toLowerCase()
-                        .findAll { it =~ /^[^=]+$/ } - ["ncolours", "crossedline"]
-                if (colours.any { it =~ /[^a-z0-9_]/ }) {
-                    throw new GradleException("Couldn't parse colours for " + game + ": " + match.group(1) + " -> " + colours)
-                }
-                resValue "string", game + "_colours", colours.join(',')
-            }
+        defaultConfig.with {
+            applicationId = "name.boyle.chris.sgtpuzzles"
+            versionCode = 105
+            versionName = "${timestamp()}-${idForSimon()}"
+            targetSdkVersion.apiLevel = 22
+            minSdkVersion.apiLevel = 7
         }
     }
 
-    buildTypes {
+    android.ndk {
+        moduleName = "puzzles"
+        CFlags += "-DANDROID -DSMALL_SCREEN -DSTYLUS_BASED -DNO_PRINTING -DCOMBINED"
+        // WARNING abiFilters "all" here can end up omitting lib dir; I don't know why
+    }
+
+    fileTree(dir: 'src/main/jni', include: '*.c').each { File f ->
+        def game = f.name.replace(".c", "")
+        def text = f.text
+        def match = text =~ /enum\s+\{\s*COL_[^,]+,\s*(COL_[^\}]+)\}/
+        if (match) {
+            def colours = match.group(1).replaceAll(/(?s)\/\*.*?\*\//, "").replaceAll(/#[^\n]*\n/, "")
+                    .trim().split(",")*.trim()*.replaceFirst(/^COL_/, "")*.toLowerCase()
+                    .findAll { it =~ /^[^=]+$/ } - ["ncolours", "crossedline"]
+            if (colours.any { it =~ /[^a-z0-9_]/ }) {
+                throw new GradleException("Couldn't parse colours for " + game + ": " + match.group(1) + " -> " + colours)
+            }
+//            resValue "string", game + "_colours", colours.join(',')
+            println "string " + game + "_colours " + colours.join(',')
+        }
+    }
+
+    android.buildTypes {
         debug {
-            jniDebuggable true
+            isJniDebuggable = true
         }
         release {
-            minifyEnabled true  // about to be renamed to minifyEnabled
-            jniDebuggable false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.txt'
+            isMinifyEnabled = true  // about to be renamed to minifyEnabled
+            isJniDebuggable = false
+            proguardFiles += file('proguard-rules.txt')
         }
     }
+
 }
 
-android.applicationVariants.all{ variant ->
+void buildExecutable(String abi, String debugOrRelease) {
+    Properties properties = new Properties()
+    properties.load(project.rootProject.file('local.properties').newDataInputStream())
+    def ndkDir = properties.getProperty('ndk.dir')
+    def jniLibsDir = file('src/main/jniLibs/' + abi)
+    def soFolder = file('build/intermediates/binaries/' + debugOrRelease + '/lib/' + abi)
+    def objFolder = file('build/intermediates/binaries/' + debugOrRelease + '/obj/' + abi)
+    // library is built, now build the executables: copy libpuzzles aside...
+    def prebuiltDir = file(objFolder.parent + '/prebuilt')
+    def prebuiltAbiDir = file(prebuiltDir.absolutePath + '/' + abi)
+    prebuiltAbiDir.mkdirs()
+    def outDir = file(objFolder.parent + '/executables')
+    def outAbiDir = file(outDir.absolutePath + '/' + abi)
+    outAbiDir.mkdirs()
+    copy {
+        from(soFolder.absolutePath + '/libpuzzles.so')
+        into prebuiltAbiDir
+    }
 
-    variant.ndkCompile << {
-        // library is built, now build the executables: copy libpuzzles aside...
-        def prebuiltDir = file(variant.ndkCompile.soFolder.parent + '/prebuilt')
-        copy {
-            from(variant.ndkCompile.soFolder) {
-                include '**/libpuzzles.so'
-            }
-            into prebuiltDir
-        }
+    String abiParam = 'APP_ABI=' + abi
 
-        // use the same APP_ABI that NdkCompile.groovy does
-        String abiParam = 'APP_ABI='
-        Set<String> abiFilters = variant.ndkCompile.abiFilters
-        if (abiFilters != null && !abiFilters.isEmpty()) {
-            if (abiFilters.size() == 1) {
-                abiParam += abiFilters.iterator().next()
-            } else {
-                abiParam += Joiner.on((char)',').skipNulls().join(abiFilters.iterator())
-            }
-        } else {
-            abiParam += 'all'
-        }
-
-        // build the executables, with and without PIE
-        //noinspection GroovyAssignabilityCheck
-        def common = [
-            ndkDir.absolutePath + (Os.isFamily(Os.FAMILY_WINDOWS) ? '/ndk-build.cmd' : '/ndk-build'),
+    // build the executables, with and without PIE
+    //noinspection GroovyAssignabilityCheck
+    def common = [
+            ndkDir + (Os.isFamily(Os.FAMILY_WINDOWS) ? '/ndk-build.cmd' : '/ndk-build'),
             'NDK_PROJECT_PATH=null',
             'APP_BUILD_SCRIPT=' + file('src/main/executable.mk').absolutePath,
-            'NDK_OUT=' + variant.ndkCompile.objFolder.absolutePath,
-            'NDK_LIBS_OUT=' + variant.ndkCompile.soFolder.absolutePath,
+            'NDK_OUT=' + objFolder.absolutePath,
+            'NDK_LIBS_OUT=' + outDir.absolutePath,
             'PUZZLES_PREBUILT_DIR=' + prebuiltDir.absolutePath,
             abiParam,
             'NDK_LOG=1',
-            'NDK_DEBUG=' + (variant.ndkCompile.debuggable ? '1' : '0')]
-        exec {
-            commandLine common + [
-                    'APP_PLATFORM=android-7',  // 5 is earliest for x86 + mips
-                    'PUZZLESGEN_SUFFIX=-no-pie',
-                    'APP_PIE=false']
-        }
-        exec {
-            commandLine common + [
-                    'APP_PLATFORM=android-16',  // earliest for PIE
-                    'PUZZLESGEN_SUFFIX=-with-pie',
-                    'APP_PIE=true']
-        }
+            'NDK_DEBUG=' + (('debug'.equals(debugOrRelease)) ? '1' : '0')]
+    exec {
+        commandLine common + [
+                'APP_PLATFORM=android-7',  // 5 is earliest for x86 + mips
+                'PUZZLESGEN_SUFFIX=-no-pie',
+                'APP_PIE=false']
+    }
+    exec {
+        commandLine common + [
+                'APP_PLATFORM=android-16',  // earliest for PIE
+                'PUZZLESGEN_SUFFIX=-with-pie',
+                'APP_PIE=true']
+    }
 
-        // rename to look like libraries, to get them installed
-        copy {
-            from(variant.ndkCompile.soFolder) {
-                include '**/puzzlesgen-*'
-                rename 'puzzlesgen-(.*)', 'libpuzzlesgen-$1.so'
-            }
-            into variant.ndkCompile.soFolder
+    // rename to look like libraries, to get them installed
+    copy {
+        from(outAbiDir) {
+            include 'puzzlesgen-*'
+            rename 'puzzlesgen-(.*)', 'libpuzzlesgen-$1.so'
         }
+        into jniLibsDir
+    }
+}
+
+def ABIs = ["arm64-v8a", "armeabi", "armeabi-v7a", "mips", "mips64", "x86", "x86_64"]
+
+task "buildGameGenerationExecutableDebug" << {
+    for (String abi : ABIs) {
+        buildExecutable(abi, "debug")
+    }
+}
+task "buildGameGenerationExecutableRelease" << {
+    for (String abi : ABIs) {
+        buildExecutable(abi, "release")
     }
 }
 
