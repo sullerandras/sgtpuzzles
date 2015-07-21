@@ -61,7 +61,7 @@ model {
                 throw new GradleException("Couldn't parse colours for " + game + ": " + match.group(1) + " -> " + colours)
             }
 //            resValue "string", game + "_colours", colours.join(',')
-            println "string " + game + "_colours " + colours.join(',')
+            println "\t<string translatable=\"false\" name=\"" + game + "_colours\">" + colours.join(',') + "</string>"
         }
     }
 

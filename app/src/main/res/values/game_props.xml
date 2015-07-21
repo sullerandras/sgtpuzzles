@@ -102,6 +102,44 @@
 	<string translatable="false" name="unequal_drag_mode">prevent</string>
 	<string translatable="false" name="unruly_drag_mode">prevent</string>
 	<!-- Night mode mostly just changes the background, but some colours need inverting/tweaking. -->
+	<string translatable="false" name="blackbox_colours">cover,lock,text,flashtext,highlight,lowlight,grid,ball,ball_revealed,wrong,button,cursor</string>
+	<string translatable="false" name="bridges_colours">foreground,highlight,lowlight,selected,mark,hint,grid,warning,cursor</string>
+	<string translatable="false" name="cube_colours">border,blue</string>
+	<string translatable="false" name="dominosa_colours">text,domino,dominoclash,dominotext,edge,cursor,dominocursor</string>
+	<string translatable="false" name="fifteen_colours">text,highlight,lowlight</string>
+	<string translatable="false" name="filling_colours">grid,highlight,correct,error,user,cursor</string>
+	<string translatable="false" name="flip_colours">wrong,right,grid,diag,hint,cursor</string>
+	<string translatable="false" name="flood_colours">separator,1,2,3,4,5,6,7,8,9,10,highlight,lowlight</string>
+	<string translatable="false" name="galaxies_colours">whitebg,blackbg,whitedot,blackdot,grid,edge,arrow,cursor</string>
+	<string translatable="false" name="guess_colours">frame,cursor,flash,hold,empty,1,2,3,4,5,6,7,8,9,10,correctplace,correctcolour</string>
+	<string translatable="false" name="inertia_colours">outline,highlight,lowlight,player,dead_player,mine,gem,wall,hint</string>
+	<string translatable="false" name="keen_colours">grid,user,highlight,error,pencil</string>
+	<string translatable="false" name="lightup_colours">grid,black,light,lit,error,cursor</string>
+	<string translatable="false" name="loopy_colours">foreground,lineunknown,highlight,mistake,satisfied,cursor,faint</string>
+	<string translatable="false" name="magnets_colours">highlight,lowlight,text,error,cursor,done,neutral,negative,positive,not</string>
+	<string translatable="false" name="map_colours">grid,0,1,2,3,error,errtext</string>
+	<string translatable="false" name="mines_colours">background2,1,2,3,4,5,6,7,8,mine,bang,cross,flag,flagbase,query,highlight,lowlight,wrongnumber,cursor</string>
+	<string translatable="false" name="net_colours">locked,border,wire,endpoint,powered,barrier,loop</string>
+	<string translatable="false" name="netslide_colours">flashing,border,wire,endpoint,powered,barrier,lowlight,text</string>
+	<string translatable="false" name="pattern_colours">empty,full,text,unknown,grid,cursor,error</string>
+	<string translatable="false" name="pearl_colours">highlight,lowlight,black,white,error,grid,flash,dragon,dragoff</string>
+	<string translatable="false" name="pegs_colours">highlight,lowlight,peg,cursor</string>
+	<string translatable="false" name="range_colours">grid,error,lowlight</string>
+	<string translatable="false" name="rect_colours">correct,line,text,grid,drag,dragerase,cursor</string>
+	<string translatable="false" name="samegame_colours">1,2,3,4,5,6,7,8,9,impossible,sel,highlight,lowlight</string>
+	<string translatable="false" name="signpost_colours">highlight,lowlight,grid,cursor,error,drag_origin,arrow,arrow_bg_dim,number,number_set,number_set_mid,b0</string>
+	<string translatable="false" name="singles_colours">highlight,lowlight,black,white,blacknum,grid,cursor,error</string>
+	<string translatable="false" name="sixteen_colours">text,highlight,lowlight</string>
+	<string translatable="false" name="slant_colours">grid,ink,slant1,slant2,error,cursor,filledsquare</string>
+	<string translatable="false" name="solo_colours">xdiagonals,grid,grid_block,clue,user,highlight,error,pencil,killer</string>
+	<string translatable="false" name="tents_colours">grid,grass,treetrunk,treeleaf,tent,error,errtext,errtrunk</string>
+	<string translatable="false" name="towers_colours">grid,user,highlight,error,pencil,done</string>
+	<string translatable="false" name="tracks_colours">lowlight,highlight,grid,clue,cursor,track,track_clue,sleeper,dragon,dragoff,error,flash</string>
+	<string translatable="false" name="twiddle_colours">text,highlight,highlight_gentle,lowlight,lowlight_gentle,highcursor,lowcursor</string>
+	<string translatable="false" name="undead_colours">grid,text,error,highlight,flash,monster_outline,monster_eyes,ghost,zombie,vampire,done</string>
+	<string translatable="false" name="unequal_colours">grid,text,guess,error,pencil,highlight,lowlight</string>
+	<string translatable="false" name="unruly_colours">grid,empty,0,0_highlight,0_lowlight,1,1_highlight,1_lowlight,cursor,error</string>
+	<string translatable="false" name="untangle_colours">background,line,outline,point,dragpoint,neighbour,flash1,flash2</string>
 	<color name="blackbox_night_colour_text">#ffffff</color>
 	<color name="blackbox_night_colour_ball_revealed">#999999</color>
 	<color name="bridges_night_colour_foreground">#ffffff</color>
