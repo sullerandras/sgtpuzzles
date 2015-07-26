@@ -29,12 +29,23 @@ Version %s"</string>
     <string name="app_name">Puzzles</string>
     <string name="website_url">https://chris.boyle.name/projects/android-puzzles/</string>
     <string name="author_email">chris@boyle.name</string>
+    <string name="feedback_body">"
+
+
+----- Below is the current game state -----
+{0}
+----- Above is the current game state -----
+
+
+"</string>
     <string name="unknown_version">UNKNOWN</string>
     <string name="how_to_scroll">Scroll with two fingers apart</string>
+    <string name="toast_swap_l_r_on">Swapped press &amp; long-press</string>
+    <string name="toast_swap_l_r_off">Press &amp; long-press are no longer swapped</string>
     <!-- {0} = version, {1} = device model number -->
     <string name="email_subject">Puzzles v{0} {1} on {2} / {3} / {4}</string>
     <string name="no_email_app">No email app?</string>
-    <string name="email_manually">"Please send your feedback to {0} and include the following information:
+    <string name="email_manually">"Please send your feedback to {0} and include the following information, as well as a saved file of the current game if possible:
 
 {1}"</string>
     <!-- For saving and loading game state on the SD card -->
@@ -129,6 +140,8 @@ Version %s"</string>
     <string name="keyboardBordersSummary">Otherwise only symbols are shown</string>
     <string name="bridgesShowH">"Show \"H\" in Bridges"</string>
     <string name="bridgesShowHSummary">"Undocumented \"solve from here\" action"</string>
+    <string name="unequalShowH">"Show \"H\" in Unequal"</string>
+    <string name="unequalShowHSummary">"Adds all pencil marks, removes \"obvious\" ones, can solve entire puzzle"</string>
     <string name="patternShowLengths">Show drag lengths</string>
     <string name="patternShowLengthsSummary">Show number of squares selected</string>
     <string name="controlsReminders">Show reminders of controls</string>

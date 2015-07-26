@@ -113,7 +113,7 @@ void buildExecutable(String abi, String debugOrRelease) {
             'NDK_DEBUG=' + (('debug'.equals(debugOrRelease)) ? '1' : '0')]
     exec {
         commandLine common + [
-                'APP_PLATFORM=android-7',  // 5 is earliest for x86 + mips
+                'APP_PLATFORM=android-9',  // 9 is earliest for x86 + mips
                 'PUZZLESGEN_SUFFIX=-no-pie',
                 'APP_PIE=false']
     }

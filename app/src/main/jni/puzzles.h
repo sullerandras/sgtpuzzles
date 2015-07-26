@@ -6,11 +6,21 @@
 #define PUZZLES_PUZZLES_H
 
 /* Android gradle plugin is a little slow on the uptake here */
+#ifndef ANDROID
 #define ANDROID
+#endif
+#ifndef SMALL_SCREEN
 #define SMALL_SCREEN
+#endif
+#ifndef STYLUS_BASED
 #define STYLUS_BASED
+#endif
+#ifndef NO_PRINTING
 #define NO_PRINTING
+#endif
+#ifndef COMBINED
 #define COMBINED
+#endif
 
 #include <stdio.h>  /* for FILE */
 #include <stdlib.h> /* for size_t */

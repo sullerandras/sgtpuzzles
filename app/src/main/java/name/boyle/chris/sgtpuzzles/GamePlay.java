@@ -102,6 +102,7 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 	static final String LIMIT_DPI_KEY = "limitDpi";
 	private static final String KEYBOARD_BORDERS_KEY = "keyboardBorders";
 	private static final String BRIDGES_SHOW_H_KEY = "bridgesShowH";
+	private static final String UNEQUAL_SHOW_H_KEY = "unequalShowH";
 	private static final String FULLSCREEN_KEY = "fullscreen";
 	private static final String STAY_AWAKE_KEY = "stayAwake";
 	private static final String UNDO_REDO_KBD_KEY = "undoRedoOnKeyboard";
@@ -113,8 +114,9 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 	private static final String OLD_SAVED_GAME = "savedGame";
 	public static final String SAVED_BACKEND = "savedBackend";
 	private static final String SAVED_COMPLETED_PREFIX = "savedCompleted_";
-	private static final String SAVED_GAME_PREFIX = "savedGame_";
+	static final String SAVED_GAME_PREFIX = "savedGame_";
 	public static final String LAST_PARAMS_PREFIX = "last_params_";
+	public static final String SWAP_L_R_PREFIX = "swap_l_r_";
 	private static final String PUZZLESGEN_LAST_UPDATE = "puzzlesgen_last_update";
 	private static final String BLUETOOTH_PACKAGE_PREFIX = "com.android.bluetooth";
 	private static final int REQ_CODE_CREATE_DOC = Activity.RESULT_FIRST_USER;
@@ -159,6 +161,8 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 	private final Pattern DIMENSIONS = Pattern.compile("(\\d+)( ?)x\\2(\\d+)(.*)");
 	private long lastKeySent = 0;
 	NightModeHelper nightModeHelper;
+	private Intent appStartIntentOnResume = null;
+	private boolean swapLR = false;
 
 	enum UIVisibility {
 		UNDO(1), REDO(2), CUSTOM(4), SOLVE(8), STATUS(16);
@@ -299,11 +303,11 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 			applyKeyboardBorders();
 		}
 		refreshStatusBarColours();
-		onNewIntent(getIntent());
 		getWindow().setBackgroundDrawable(null);
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
 			setUpBeam();
 		}
+		appStartIntentOnResume = getIntent();
 	}
 
 	private void refreshStatusBarColours() {
@@ -1081,6 +1085,10 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 		else {
 			nightModeHelper.onResume();
 		}
+		if (appStartIntentOnResume != null) {
+			onNewIntent(appStartIntentOnResume);
+			appStartIntentOnResume = null;
+		}
 	}
 
 	@Override
@@ -1099,6 +1107,12 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 					TIMER_INTERVAL);
 	}
 
+	@SuppressLint("CommitPrefEdits")
+	public void setSwapLR(boolean swap) {
+		swapLR = swap;
+		prefsSaver.save(prefs.edit().putBoolean(SWAP_L_R_PREFIX + currentBackend, swap));
+	}
+
 	void sendKey(PointF p, int k)
 	{
 		sendKey(Math.round(p.x), Math.round(p.y), k);
@@ -1111,6 +1125,14 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 			// menu button hack
 			openOptionsMenu();
 			return;
+		}
+		if (swapLR && (k >= GameView.FIRST_MOUSE && k <= GameView.LAST_MOUSE)) {
+			final int whichButton = (k - GameView.FIRST_MOUSE) % 3;
+			if (whichButton == 0) {
+				k += 2;  // left; send right
+			} else if (whichButton == 2) {
+				k -= 2;  // right; send left
+			}
 		}
 		keyEvent(x, y, k);
 		gameView.requestFocus();
@@ -1162,8 +1184,14 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 			mainLayout.updateViewLayout(gameView, glp);
 		}
 		final SmallKeyboard.ArrowMode arrowMode = computeArrowMode(whichBackend);
+		final String maybeSwapLRKey = (lastArrowMode == SmallKeyboard.ArrowMode.ARROWS_LEFT_RIGHT_CLICK)
+				? String.valueOf(SmallKeyboard.SWAP_L_R_KEY) : "";
 		keyboard.setKeys((c.hardKeyboardHidden == Configuration.HARDKEYBOARDHIDDEN_NO)
-				? maybeUndoRedo : filterKeys(arrowMode) + maybeUndoRedo, arrowMode, whichBackend);
+				? maybeSwapLRKey + maybeUndoRedo
+				: filterKeys(arrowMode) + maybeSwapLRKey + maybeUndoRedo,
+				arrowMode, whichBackend);
+		swapLR = prefs.getBoolean(SWAP_L_R_PREFIX + whichBackend, false);
+		keyboard.setSwapLR(swapLR);
 		prevLandscape = landscape;
 		mainLayout.requestLayout();
 	}
@@ -1195,8 +1223,9 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 
 	private String filterKeys(final SmallKeyboard.ArrowMode arrowMode) {
 		String filtered = lastKeys;
-		if (startingBackend != null && startingBackend.equals("bridges")
-				&& !prefs.getBoolean(BRIDGES_SHOW_H_KEY, false)) {
+		if (startingBackend != null &&
+				((startingBackend.equals("bridges") && !prefs.getBoolean(BRIDGES_SHOW_H_KEY, false))
+				|| (startingBackend.equals("unequal") && !prefs.getBoolean(UNEQUAL_SHOW_H_KEY, false)))) {
 			filtered = filtered.replace("H", "");
 		}
 		if (arrowMode.hasArrows()) {
@@ -1584,8 +1613,8 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 			applyUndoRedoKbd();
 		} else if (key.equals(KEYBOARD_BORDERS_KEY)) {
 			applyKeyboardBorders();
-		} else if (key.equals(BRIDGES_SHOW_H_KEY)) {
-			applyBridgesShowH();
+		} else if (key.equals(BRIDGES_SHOW_H_KEY) || key.equals(UNEQUAL_SHOW_H_KEY)) {
+			applyShowH();
 		}
 	}
 
@@ -1696,7 +1725,7 @@ public class GamePlay extends AppCompatActivity implements OnSharedPreferenceCha
 		rethinkActionBarCapacity();
 	}
 
-	private void applyBridgesShowH() {
+	private void applyShowH() {
 		setKeyboardVisibility(startingBackend, getResources().getConfiguration());
 	}
 
