@@ -36,7 +36,7 @@ model {
 
         defaultConfig.with {
             applicationId = "name.boyle.chris.sgtpuzzles"
-            versionCode = 106
+            versionCode = 108
             versionName = "${timestamp()}-${idForSimon()}"
             targetSdkVersion.apiLevel = 22
             minSdkVersion.apiLevel = 7
@@ -111,7 +111,6 @@ void buildExecutable(String abi, String debugOrRelease) {
             abiParam,
             'NDK_LOG=1',
             'NDK_DEBUG=' + (('debug'.equals(debugOrRelease)) ? '1' : '0')]
-    // You must remove the fake stpcpy implementation in android-gen.c when increasing APP_PLATFORM to >= 21
     exec {
         commandLine common + [
                 'APP_PLATFORM=android-9',  // 9 is earliest for x86 + mips
