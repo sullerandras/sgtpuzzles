@@ -1988,6 +1988,7 @@ static void draw_tile(drawing *dr, game_drawstate *ds, struct clues *clues,
 		  FONT_VARIABLE, TILESIZE/2, ALIGN_VCENTRE | ALIGN_HCENTRE,
 		  (tile & DF_ERR_LATIN) ? COL_ERROR : COL_USER, str);
     } else {
+        int fixed_hints = TRUE;
         int i, j, npencil;
 	int pl, pr, pt, pb;
 	float bestsize;
@@ -1995,7 +1996,7 @@ static void draw_tile(drawing *dr, game_drawstate *ds, struct clues *clues,
 
         /* Count the pencil marks required. */
         for (i = 1, npencil = 0; i <= w; i++)
-            if (tile & (1L << (i + DF_PENCIL_SHIFT)))
+            if (fixed_hints || (tile & (1L << (i + DF_PENCIL_SHIFT))))
 		npencil++;
 	if (npencil) {
 
@@ -2080,6 +2081,8 @@ static void draw_tile(drawing *dr, game_drawstate *ds, struct clues *clues,
 			      pt + fontsize * (2*dy+1) / 2,
 			      FONT_VARIABLE, fontsize,
 			      ALIGN_VCENTRE | ALIGN_HCENTRE, COL_PENCIL, str);
+		    j++;
+		} else if (fixed_hints) {
 		    j++;
 		}
 	}
