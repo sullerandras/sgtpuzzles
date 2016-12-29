@@ -1118,9 +1118,9 @@ static float *game_colours(frontend *fe, int *ncolours)
            0.0F);
 
     COLOUR(COL_LINE_NO,
-           ret[COL_BACKGROUND*3 + 0] * 0.7F,
-           ret[COL_BACKGROUND*3 + 1] * 0.7F,
-           ret[COL_BACKGROUND*3 + 2] * 0.7F);
+           ret[COL_BACKGROUND*3 + 0] * 0.95F,
+           ret[COL_BACKGROUND*3 + 1] * 0.95F,
+           ret[COL_BACKGROUND*3 + 2] * 0.95F);
 
     *ncolours = NCOLOURS;
     return ret;
