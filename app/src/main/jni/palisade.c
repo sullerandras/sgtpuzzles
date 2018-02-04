@@ -1088,6 +1088,7 @@ static void game_set_size(drawing *dr, game_drawstate *ds,
 
 enum {
     COL_BACKGROUND,
+    COL_BACKGROUND_AREA,
     COL_FLASH,
     COL_GRID,
     COL_CLUE = COL_GRID,
@@ -1109,6 +1110,7 @@ static float *game_colours(frontend *fe, int *ncolours)
 
     game_mkhighlight(fe, ret, COL_BACKGROUND, -1, COL_FLASH);
 
+    COLOUR(COL_BACKGROUND_AREA, 0.9F, 0.9F, 0.9F); /* background of consecutive area */
     COLOUR(COL_GRID,   0.0F, 0.0F, 0.0F); /* black */
     COLOUR(COL_ERROR,  1.0F, 0.0F, 0.0F); /* red */
 
@@ -1117,10 +1119,11 @@ static float *game_colours(frontend *fe, int *ncolours)
            ret[COL_BACKGROUND*3 + 1] * DARKER,
            0.0F);
 
-    COLOUR(COL_LINE_NO,
-           ret[COL_BACKGROUND*3 + 0] * DARKER,
-           ret[COL_BACKGROUND*3 + 1] * DARKER,
-           ret[COL_BACKGROUND*3 + 2] * DARKER);
+//    COLOUR(COL_LINE_NO,
+//           ret[COL_BACKGROUND*3 + 0] * DARKER,
+//           ret[COL_BACKGROUND*3 + 1] * DARKER,
+//           ret[COL_BACKGROUND*3 + 2] * DARKER);
+    COLOUR(COL_LINE_NO, 0.9F, 0.9F, 0.9F);
 
     *ncolours = NCOLOURS;
     return ret;
@@ -1166,7 +1169,11 @@ static void draw_tile(drawing *dr, game_drawstate *ds, int r, int c,
     clip(dr, x, y, TILESIZE + WIDTH, TILESIZE + WIDTH); /* { */
 
     draw_rect(dr, x + WIDTH, y + WIDTH, TILESIZE - WIDTH, TILESIZE - WIDTH,
-              (flags & F_FLASH ? COL_FLASH : COL_BACKGROUND));
+              (flags & F_FLASH ? COL_FLASH : \
+               (((COLOUR(BORDER_U) == COL_LINE_NO) || \
+                 (COLOUR(BORDER_R) == COL_LINE_NO) || \
+                 (COLOUR(BORDER_D) == COL_LINE_NO) || \
+                 (COLOUR(BORDER_L) == COL_LINE_NO)) ? COL_BACKGROUND_AREA : COL_BACKGROUND)));
 
     if (flags & F_CURSOR)
         draw_rect_corners(dr, x + CENTER, y + CENTER, TILESIZE / 3, COL_GRID);
